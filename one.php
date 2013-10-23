@@ -12,21 +12,26 @@ One file site generator.
 */
 
 
-function page_content($filename=false)
+function page_content($filename = false)
 {
     static $cache = array();
     $key = crc32($filename);
-    if(isset($cache[$key])){
+    if (isset($cache[$key])) {
         return $cache[$key];
     }
 
     if ($filename == false) {
         $filename = locate_page_file();
         if ($filename == false) {
-           $cache[$key] = false;
-           return false;
+            $cache[$key] = false;
+            return false;
         }
     }
+    if (!is_file($filename)) {
+        $filename = locate_page_file($filename);
+    }
+
+
     $item = str_replace('..', '', $filename);
     if (is_file($item)) {
         ob_start();
@@ -41,12 +46,18 @@ function page_content($filename=false)
 }
 
 
-function locate_page_file()
+function locate_page_file($path = false)
 {
-    $locate_file_content = url_path();
-    if($locate_file_content == ''){
-        $locate_file_content = 'home';
+
+    if ($path == false) {
+        $locate_file_content = url_path();
+        if ($locate_file_content == '') {
+            $locate_file_content = 'home';
+        }
+    } else {
+        $locate_file_content = $path;
     }
+
 
     $allowed_ext = array('.php', '.html', '.htm', '.md');
     $here = dirname(__FILE__) . DIRECTORY_SEPARATOR;
@@ -77,8 +88,8 @@ function site_url($add_string = false)
         if (isset($_SERVER['REDIRECT_URL'])) {
             $subdir_append = $_SERVER['REDIRECT_URL'];
         }
-         $pageURL .= "://";
-         if (isset($_SERVER["SERVER_NAME"]) and isset($_SERVER["SERVER_PORT"]) and $_SERVER["SERVER_PORT"] != "80") {
+        $pageURL .= "://";
+        if (isset($_SERVER["SERVER_NAME"]) and isset($_SERVER["SERVER_PORT"]) and $_SERVER["SERVER_PORT"] != "80") {
             $pageURL .= $_SERVER["SERVER_NAME"] . ":" . $_SERVER["SERVER_PORT"];
         } elseif (isset($_SERVER["SERVER_NAME"])) {
             $pageURL .= $_SERVER["SERVER_NAME"];
@@ -175,13 +186,11 @@ function strleft($s1, $s2)
 {
     return substr($s1, 0, strpos($s1, $s2));
 }
+
 function is_ajax()
 {
     return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest'));
 }
-
-
-
 
 
 function url_segment($k = -1, $page_url = false)
@@ -207,8 +216,8 @@ function url_segment($k = -1, $page_url = false)
         $u = explode('/', trim(preg_replace('/([^\w\:\-\.\%\/])/i', '', current(explode('?', $u1, 2))), '/'));
     }
     $r = false;
-    if($k != -1 and isset($u[$k])){
-        $r =$u[$k];
+    if ($k != -1 and isset($u[$k])) {
+        $r = $u[$k];
     }
     return $k != -1 ? $r : $u;
 
