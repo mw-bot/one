@@ -1,0 +1,1 @@
+<h1>Hello, I am a dynamic php page served from <?php print __FILE__; ?></h1>
